@@ -410,15 +410,16 @@ xf.reg('watch:lapTime',        (time, db) => {
     if (db.powerMatchActive && stepElapsed >= 30 && (stepElapsed % iterationTime == 0)) {
         var error = db.powerTarget - db.power30s;
         console.log("db.powerTarget - db.power30s: %f", error)
-        var integral = clamp(-1500, 1500,db.powerMatchPreviousIntegral + (error * iterationTime));
+        var integral = clamp(-2500, 2500,db.powerMatchPreviousIntegral + (error * iterationTime));
         var derivative = (error - db.powerMatchPreviousError) / iterationTime;
-        db.powerTargetAdjusted = Math.round(clamp( 0.6 * db.powerTarget, 1.4 * db.powerTarget, db.powerMatchKp * error + db.powerMatchKi * integral + db.powerMatchKd * derivative));
+        db.powerTargetAdjusted = Math.round( db.powerMatchKp * error + db.powerMatchKi * integral + db.powerMatchKd * derivative);
         db.powerMatchPreviousError = error;
         db.powerMatchPreviousIntegral = integral;
         console.log("db.powerTarget %d db.power30s %d error %f integral %f derivative %f output %d", db.powerTarget, db.power30s, error, integral, derivative, db.powerTargetAdjusted);
 
-        // How to send the adjusted Target to the trainer? Setting the UI updates db.powerTarget leading to a never ending error chase
-        // xf.dispatch('ui:power-target-set', db.powerTargetAdjusted);
+        // Setting db.powerTargetAdjusted should make the change propagate to the connected device subscriber/event.
+        // powerTarget is left at it's unadulterated setpoint.
+        
     }
 });
 xf.reg('watch:stepTime',       (time, db) => db.stepTime         = time);
@@ -446,7 +447,6 @@ xf.reg('watch:stepIndex',     (index, db) => {
         xf.dispatch('ui:cadence-target-set', 0);
     }
     if (exists(powerTarget)) {
-        xf.dispatch('ui:power-target-set', models.ftp.toAbsolute(powerTarget, db.ftp));
         // If we have a power target, and no slope target, ensure the trainer is in erg mode and enable power match
         if (!exists(slopeTarget)) {
             if (!equals(db.mode, ControlMode.erg)) {
@@ -461,20 +461,15 @@ xf.reg('watch:stepIndex',     (index, db) => {
             db.powerMatchActive = false;
         }
         // Either way compute and dispatch target
-        db.powerTarget = models.ftp.toAbsolute(powerTarget, db.ftp);
-        db.powerTargetAdjusted = db.powerTarget;
+        xf.dispatch('ui:power-target-set', models.ftp.toAbsolute(powerTarget, db.ftp));
         db.powerMatchPreviousError = 0;
         db.powerMatchPreviousIntegral = 0;
-        xf.dispatch('ui:power-target-set', db.powerTarget);
     } else {
-        xf.dispatch('ui:power-target-set', 0);
         // if there is no power target, send 0 and disable power match
         db.powerMatchActive = false;
-        db.powerTarget = 0;
-        db.powerTargetAdjusted = db.powerTarget;
+        xf.dispatch('ui:power-target-set', 0);       
         db.powerMatchPreviousError = 0;
         db.powerMatchPreviousIntegral = 0;
-        xf.dispatch('ui:power-target-set', db.powerTarget);
     }
 });
 xf.reg('workout:started', (x, db) => db.workoutStatus = 'started');
@@ -497,7 +492,7 @@ xf.reg('db:powerTarget', (target, db) =>{
     console.log('db.powerTarget has changed to %d. Updating powerTargetAdjusted', db.powerTarget);
     db.powerTargetAdjusted = db.powerTarget;
     if(db.powerMatchActive) {
-        console.log("New step in workout with powerMatchActive. Resetting PID vars");
+        console.log("New powerTarget with powerMatchActive. Resetting PID vars");
         db.powerMatchPreviousError = 0;
         db.powerMatchPreviousIntegral = 0;
     }
