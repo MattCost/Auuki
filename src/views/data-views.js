@@ -608,6 +608,15 @@ class PowerTarget extends DataView {
 
 customElements.define('power-target', PowerTarget);
 
+class PowerTargetAdjusted extends DataView {
+    getDefaults() {
+        return {
+            prop: 'db:powerTargetAdjusted',
+        };
+    }
+}
+customElements.define('power-target-adjusted', PowerTargetAdjusted);
+
 class PowerTargetFTP extends DataView {
     getDefaults() {
         return {
