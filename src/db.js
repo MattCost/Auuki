@@ -54,7 +54,7 @@ let db = {
     powerMatchActive: false,
     powerTargetAdjusted: models.powerTarget.default,
     powerMatchKp: 1.1,
-    powerMatchKi: 0.0,
+    powerMatchKi: 0.01,
     powerMatchKd: 0.0,
     powerMatchPreviousError: 0.0,
     powerMatchPreviousIntegral: 0.0,
