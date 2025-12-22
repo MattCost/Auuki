@@ -463,7 +463,7 @@ xf.reg('watch:stepIndex',     (index, db) => {
         db.workoutPowerMatchActive = false;
         db.workoutPowerTargetSetActual = 0;
         db.workoutPowerTargetSetAdjusted = db.workoutPowerTargetSetActual;
-        xf.dispatch('ui:power-target-set', workoutPowerTargetSetActual);
+        xf.dispatch('ui:power-target-set', db.workoutPowerTargetSetActual);
     }
 });
 xf.reg('workout:started', (x, db) => db.workoutStatus = 'started');
