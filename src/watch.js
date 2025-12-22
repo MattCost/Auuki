@@ -403,19 +403,22 @@ xf.reg('watch:lapDuration',    (time, db) => db.intervalDuration = time);
 xf.reg('watch:stepDuration',   (time, db) => db.stepDuration     = time);
 xf.reg('watch:lapTime',        (time, db) => db.lapTime          = time);
 xf.reg('watch:lapTime',        (time, db) => {
-    if(db.stepDuration < 60) return;
+    const iterationTime = 15;
+    if(db.stepDuration < 60) return; 
     var stepElapsed = db.stepDuration - time;
     // Could we launch a timer here to run this function every XX seconds instead of every time lapTime changes?
-    if (db.powerMatchActive && stepElapsed >= 15 && (stepElapsed % 15 == 0)) { // adjust frequency by playing with these values for debugging
+    if (db.powerMatchActive && stepElapsed >= 30 && (stepElapsed % iterationTime == 0)) {
         var error = db.powerTarget - db.power30s;
         console.log("db.powerTarget - db.power30s: %f", error)
-        if (Math.abs(error) >= 5) {
-            db.powerAdjustFactor = clamp(-.40, .40, error / db.powerTarget);
-            db.powerTargetAdjusted = db.powerTarget * (1.0 + adjustFactor);
-            console.log("db.powerTarget %d db.powerAdjustFactor %f db.powerTargetAdjusted %d", db.powerTarget, db.powerAdjustFactor, db.powerTargetAdjusted)
+        var integral = clamp(-1500, 1500,db.powerMatchPreviousIntegral + (error * iterationTime));
+        var derivative = (error - db.powerMatchPreviousError) / iterationTime;
+        db.powerTargetAdjusted = clamp( 0.6 * db.powerTarget, 1.4 * db.powerTarget, db.powerMatchKp * error + db.powerMatchKi * integral + db.powerMatchKd * derivative);
+        db.powerMatchPreviousError = error;
+        db.powerMatchPreviousIntegral = integral;
+        console.log("db.powerTarget %d db.power30s %d error %f integral %f derivative %f output %d", db.powerTarget, db.power30s, error, integral, derivative, db.powerTargetAdjusted);
 
-            xf.dispatch('ui:power-target-set', db.powerTargetAdjusted);
-        }
+        // How to send the adjusted Target to the trainer? Setting the UI updates db.powerTarget leading to a never ending error chase
+        // xf.dispatch('ui:power-target-set', db.powerTargetAdjusted);
     }
 });
 xf.reg('watch:stepTime',       (time, db) => db.stepTime         = time);
@@ -460,6 +463,8 @@ xf.reg('watch:stepIndex',     (index, db) => {
         // Either way compute and dispatch target
         db.powerTarget = models.ftp.toAbsolute(powerTarget, db.ftp);
         db.powerTargetAdjusted = db.powerTarget;
+        db.powerMatchPreviousError = 0;
+        db.powerMatchPreviousIntegral = 0;
         xf.dispatch('ui:power-target-set', db.powerTarget);
     } else {
         // xf.dispatch('ui:power-target-set', 0);
@@ -467,6 +472,8 @@ xf.reg('watch:stepIndex',     (index, db) => {
         db.powerMatchActive = false;
         db.powerTarget = 0;
         db.powerTargetAdjusted = db.powerTarget;
+        db.powerMatchPreviousError = 0;
+        db.powerMatchPreviousIntegral = 0;
         xf.dispatch('ui:power-target-set', db.powerTarget);
     }
 });
