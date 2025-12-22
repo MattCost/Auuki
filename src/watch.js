@@ -495,11 +495,10 @@ xf.reg('watch:event', models.session.event);
 
 xf.reg('db:powerTarget', (target, db) =>{
     console.log('db.powerTarget has changed to %d. Updating powerTargetAdjusted', db.powerTarget);
-    db.powerTargetAdjusted = db.powerTarget; //This doesn't actually update powerTargetAdjusted
-
+    db.powerTargetAdjusted = db.powerTarget;
     if(db.powerMatchActive) {
         console.log("New step in workout with powerMatchActive. Resetting PID vars");
-        db.powerMatchPreviousError = 0; //These don't seem to "stick" I guess I don't understand scopes
+        db.powerMatchPreviousError = 0;
         db.powerMatchPreviousIntegral = 0;
     }
 });
