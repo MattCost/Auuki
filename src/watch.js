@@ -1,4 +1,4 @@
-import { equals, exists, empty, first, last, xf, avg, max, toFixed, print, } from './functions.js';
+import { clamp, equals, exists, empty, first, last, xf, avg, max, toFixed, print, } from './functions.js';
 import { kphToMps, mpsToKph, timeDiff, pad } from './utils.js';
 import { models } from './models/models.js';
 import { ControlMode, } from './ble/enums.js';
@@ -403,15 +403,18 @@ xf.reg('watch:lapDuration',    (time, db) => db.intervalDuration = time);
 xf.reg('watch:stepDuration',   (time, db) => db.stepDuration     = time);
 xf.reg('watch:lapTime',        (time, db) => db.lapTime          = time);
 xf.reg('watch:lapTime',        (time, db) => {
-    // Run every 30 seconds, starting as soon as the first minute is complete
-    // IF the absolute error is >= 5 watts, compute the % error and adjust target by that much.
-    // Could we launch a 30 second timer here to run this function every 30 seconds instead of every time lapTime changes?
-    if (db.workoutPowerMatchActive && time >= 60000 && (time % 30000 == 0)) {
-        var error = db.workoutPowerTargetSetActual - db.power30s;
+    if(db.stepDuration < 60) return;
+    var stepElapsed = db.stepDuration - time;
+    // Could we launch a timer here to run this function every XX seconds instead of every time lapTime changes?
+    if (db.powerMatchActive && stepElapsed >= 15 && (stepElapsed % 15 == 0)) { // adjust frequency by playing with these values for debugging
+        var error = db.powerTarget - db.power30s;
+        console.log("db.powerTarget - db.power30s: %f", error)
         if (Math.abs(error) >= 5) {
-            var adjustFactor = error / db.workoutPowerTargetSetActual;
-            db.workoutPowerTargetSetAdjusted = db.workoutPowerTargetSetAdjusted * (1.0 + adjustFactor);
-            xf.dispatch('ui:power-target-set', db.workoutPowerTargetSetAdjusted);
+            db.powerAdjustFactor = clamp(-.40, .40, error / db.powerTarget);
+            db.powerTargetAdjusted = db.powerTarget * (1.0 + adjustFactor);
+            console.log("db.powerTarget %d db.powerAdjustFactor %f db.powerTargetAdjusted %d", db.powerTarget, db.powerAdjustFactor, db.powerTargetAdjusted)
+
+            xf.dispatch('ui:power-target-set', db.powerTargetAdjusted);
         }
     }
 });
@@ -446,24 +449,25 @@ xf.reg('watch:stepIndex',     (index, db) => {
             if (!equals(db.mode, ControlMode.erg)) {
                 xf.dispatch('ui:mode-set', ControlMode.erg);
             }
-
-            db.workoutPowerMatchActive = true;
-
+            console.log("power and !slope, setting power match active to true");
+            db.powerMatchActive = true;
+            
         } else {
             // Since we have both a power and slope target, disable power match
-            db.workoutPowerMatchActive = false;
+            console.log("power but slope, setting power match active to false");
+            db.powerMatchActive = false;
         }
         // Either way compute and dispatch target
-        db.workoutPowerTargetSetActual = models.ftp.toAbsolute(powerTarget, db.ftp);
-        db.workoutPowerTargetSetAdjusted = db.workoutPowerTargetSetActual;
-        xf.dispatch('ui:power-target-set', workoutPowerTargetSetActual);
+        db.powerTarget = models.ftp.toAbsolute(powerTarget, db.ftp);
+        db.powerTargetAdjusted = db.powerTarget;
+        xf.dispatch('ui:power-target-set', db.powerTarget);
     } else {
         // xf.dispatch('ui:power-target-set', 0);
         // if there is no power target, send 0 and disable power match
-        db.workoutPowerMatchActive = false;
-        db.workoutPowerTargetSetActual = 0;
-        db.workoutPowerTargetSetAdjusted = db.workoutPowerTargetSetActual;
-        xf.dispatch('ui:power-target-set', db.workoutPowerTargetSetActual);
+        db.powerMatchActive = false;
+        db.powerTarget = 0;
+        db.powerTargetAdjusted = db.powerTarget;
+        xf.dispatch('ui:power-target-set', db.powerTarget);
     }
 });
 xf.reg('workout:started', (x, db) => db.workoutStatus = 'started');

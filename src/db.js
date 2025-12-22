@@ -51,6 +51,9 @@ let db = {
 
     // Targets
     powerTarget: models.powerTarget.default,
+    powerMatchActive: false,
+    powerTargetAdjusted: models.powerTarget.default,
+    powerAdjustFactor: 0.0,
     resistanceTarget: models.resistanceTarget.default,
     slopeTarget: models.slopeTarget.default,
     cadenceTarget: models.cadenceTarget.default,
@@ -75,9 +78,6 @@ let db = {
     // Workouts
     workouts: [],
     workout: models.workout.default,
-    workoutPowerMatchActive: false,  //todo get these vars into the workout model or a dedicated model for power tracking/match
-    workoutPowerTargetSetActual: 0,
-    workoutPowerTargetSetAdjusted: 0,
 
     // Activities
     activity: models.activity.default,
