@@ -402,6 +402,24 @@ class Watch {
 xf.reg('watch:lapDuration',    (time, db) => db.intervalDuration = time);
 xf.reg('watch:stepDuration',   (time, db) => db.stepDuration     = time);
 xf.reg('watch:lapTime',        (time, db) => db.lapTime          = time);
+xf.red('watch:lapTime',        (time, db) => {
+    // Add a watch here to check 30sec avg power vs power target, and manipulate power target if off?\
+    // if power_Tracking is true
+    //   if 30s power is outside a deadband around absolute-power-target-current
+    //      then absolute-power-target-current gets scaled and dispatched
+    //   only run after the first minute of an interval is complete to get trainers into steady state?
+    //   figure out trainer's offset and apply that?
+    if(time > "60sec" && db.workout.power_tracking) {
+        // run this logic every 30 seconds?
+        // if timeInSeconds mod 30 == 0 then       
+        var error = power-target-set-actual -db.workout.power;                // Do I have access to 30 second power?
+        if( Math.abs(error) > 5 ) {                                            // Should error band be symmetric? Add to a settings page
+            var adjustFactor = error / power-target-set-actual;                // Adjust based on current error
+            db.workout.power-target-set-adjusted = db.workout.power-target-set-adjusted * (1.0 + adjustFactor);
+            xf.dispatch('ui:power-target-set', db.workout.power-target-set-adjusted);
+        }
+    }
+});
 xf.reg('watch:stepTime',       (time, db) => db.stepTime         = time);
 xf.reg('watch:intervalIndex', (index, db) => db.intervalIndex    = index);
 xf.reg('watch:stepIndex',     (index, db) => {
@@ -427,11 +445,19 @@ xf.reg('watch:stepIndex',     (index, db) => {
         xf.dispatch('ui:cadence-target-set', 0);
     }
     if(exists(powerTarget)) {
+        // Set db.workout.power_tracking = true
+        // Set db.workout.power-target-set-actual := models.ftp.toAbsolute(powerTarget, db.ftp);
+        // Set db.workout.power-target-set-adjusted := models.ftp.toAbsolute(powerTarget, db.ftp);
+        // xf.dispatch('ui:power-target-set', db.workout.power-target-set-actual);
         xf.dispatch('ui:power-target-set', models.ftp.toAbsolute(powerTarget, db.ftp));
         if(!exists(slopeTarget) && !equals(db.mode, ControlMode.erg)) {
             xf.dispatch('ui:mode-set', ControlMode.erg);
         }
     } else {
+        // Set db.workout.power_tracking = false
+        // Set db.workout.power-target-set-actual := 0;
+        // Set db.workout.power-target-set-adjusted := 0;
+        // xf.dispatch('ui:power-target-set', db.workout.power-target-set-actual);
         xf.dispatch('ui:power-target-set', 0);
     }
 });
