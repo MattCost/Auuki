@@ -412,7 +412,7 @@ xf.reg('watch:lapTime',        (time, db) => {
         console.log("db.powerTarget - db.power30s: %f", error)
         var integral = clamp(-1500, 1500,db.powerMatchPreviousIntegral + (error * iterationTime));
         var derivative = (error - db.powerMatchPreviousError) / iterationTime;
-        db.powerTargetAdjusted = clamp( 0.6 * db.powerTarget, 1.4 * db.powerTarget, db.powerMatchKp * error + db.powerMatchKi * integral + db.powerMatchKd * derivative);
+        db.powerTargetAdjusted = Math.round(clamp( 0.6 * db.powerTarget, 1.4 * db.powerTarget, db.powerMatchKp * error + db.powerMatchKi * integral + db.powerMatchKd * derivative));
         db.powerMatchPreviousError = error;
         db.powerMatchPreviousIntegral = integral;
         console.log("db.powerTarget %d db.power30s %d error %f integral %f derivative %f output %d", db.powerTarget, db.power30s, error, integral, derivative, db.powerTargetAdjusted);
@@ -446,7 +446,7 @@ xf.reg('watch:stepIndex',     (index, db) => {
         xf.dispatch('ui:cadence-target-set', 0);
     }
     if (exists(powerTarget)) {
-        // xf.dispatch('ui:power-target-set', models.ftp.toAbsolute(powerTarget, db.ftp));
+        xf.dispatch('ui:power-target-set', models.ftp.toAbsolute(powerTarget, db.ftp));
         // If we have a power target, and no slope target, ensure the trainer is in erg mode and enable power match
         if (!exists(slopeTarget)) {
             if (!equals(db.mode, ControlMode.erg)) {
@@ -467,7 +467,7 @@ xf.reg('watch:stepIndex',     (index, db) => {
         db.powerMatchPreviousIntegral = 0;
         xf.dispatch('ui:power-target-set', db.powerTarget);
     } else {
-        // xf.dispatch('ui:power-target-set', 0);
+        xf.dispatch('ui:power-target-set', 0);
         // if there is no power target, send 0 and disable power match
         db.powerMatchActive = false;
         db.powerTarget = 0;
@@ -492,6 +492,21 @@ xf.reg('watch:stopped', (x, db) => db.watchStatus = 'stopped');
 xf.reg('watch:elapsed', models.session.elapsed);
 xf.reg('watch:lap', models.session.lap);
 xf.reg('watch:event', models.session.event);
+
+xf.reg('db:powerTarget', (target, db) =>{
+    console.log('db.powerTarget has changed to %d. Updating powerTargetAdjusted', db.powerTarget);
+    db.powerTargetAdjusted = db.powerTarget; //This doesn't actually update powerTargetAdjusted
+
+    if(db.powerMatchActive) {
+        console.log("New step in workout with powerMatchActive. Resetting PID vars");
+        db.powerMatchPreviousError = 0; //These don't seem to "stick" I guess I don't understand scopes
+        db.powerMatchPreviousIntegral = 0;
+    }
+});
+
+xf.reg('db:powerTargetAdjusted', (db) => {
+    console.log('db.powerTargetAdjusted changed to %d', db.powerTargetAdjusted);
+})
 
 const watch = new Watch();
 
