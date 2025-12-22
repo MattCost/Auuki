@@ -402,21 +402,16 @@ class Watch {
 xf.reg('watch:lapDuration',    (time, db) => db.intervalDuration = time);
 xf.reg('watch:stepDuration',   (time, db) => db.stepDuration     = time);
 xf.reg('watch:lapTime',        (time, db) => db.lapTime          = time);
-xf.red('watch:lapTime',        (time, db) => {
-    // Add a watch here to check 30sec avg power vs power target, and manipulate power target if off?\
-    // if power_Tracking is true
-    //   if 30s power is outside a deadband around absolute-power-target-current
-    //      then absolute-power-target-current gets scaled and dispatched
-    //   only run after the first minute of an interval is complete to get trainers into steady state?
-    //   figure out trainer's offset and apply that?
-    if(time > "60sec" && db.workout.power_tracking) {
-        // run this logic every 30 seconds?
-        // if timeInSeconds mod 30 == 0 then       
-        var error = power-target-set-actual -db.workout.power;                // Do I have access to 30 second power?
-        if( Math.abs(error) > 5 ) {                                            // Should error band be symmetric? Add to a settings page
-            var adjustFactor = error / power-target-set-actual;                // Adjust based on current error
-            db.workout.power-target-set-adjusted = db.workout.power-target-set-adjusted * (1.0 + adjustFactor);
-            xf.dispatch('ui:power-target-set', db.workout.power-target-set-adjusted);
+xf.reg('watch:lapTime',        (time, db) => {
+    // Run every 30 seconds, starting as soon as the first minute is complete
+    // IF the absolute error is >= 5 watts, compute the % error and adjust target by that much.
+    // Could we launch a 30 second timer here to run this function every 30 seconds instead of every time lapTime changes?
+    if (db.workoutPowerMatchActive && time >= 60000 && (time % 30000 == 0)) {
+        var error = db.workoutPowerTargetSetActual - db.power30s;
+        if (Math.abs(error) >= 5) {
+            var adjustFactor = error / db.workoutPowerTargetSetActual;
+            db.workoutPowerTargetSetAdjusted = db.workoutPowerTargetSetAdjusted * (1.0 + adjustFactor);
+            xf.dispatch('ui:power-target-set', db.workoutPowerTargetSetAdjusted);
         }
     }
 });
@@ -444,21 +439,31 @@ xf.reg('watch:stepIndex',     (index, db) => {
     } else {
         xf.dispatch('ui:cadence-target-set', 0);
     }
-    if(exists(powerTarget)) {
-        // Set db.workout.power_tracking = true
-        // Set db.workout.power-target-set-actual := models.ftp.toAbsolute(powerTarget, db.ftp);
-        // Set db.workout.power-target-set-adjusted := models.ftp.toAbsolute(powerTarget, db.ftp);
-        // xf.dispatch('ui:power-target-set', db.workout.power-target-set-actual);
-        xf.dispatch('ui:power-target-set', models.ftp.toAbsolute(powerTarget, db.ftp));
-        if(!exists(slopeTarget) && !equals(db.mode, ControlMode.erg)) {
-            xf.dispatch('ui:mode-set', ControlMode.erg);
+    if (exists(powerTarget)) {
+        // xf.dispatch('ui:power-target-set', models.ftp.toAbsolute(powerTarget, db.ftp));
+        // If we have a power target, and no slope target, ensure the trainer is in erg mode and enable power match
+        if (!exists(slopeTarget)) {
+            if (!equals(db.mode, ControlMode.erg)) {
+                xf.dispatch('ui:mode-set', ControlMode.erg);
+            }
+
+            db.workoutPowerMatchActive = true;
+
+        } else {
+            // Since we have both a power and slope target, disable power match
+            db.workoutPowerMatchActive = false;
         }
+        // Either way compute and dispatch target
+        db.workoutPowerTargetSetActual = models.ftp.toAbsolute(powerTarget, db.ftp);
+        db.workoutPowerTargetSetAdjusted = db.workoutPowerTargetSetActual;
+        xf.dispatch('ui:power-target-set', workoutPowerTargetSetActual);
     } else {
-        // Set db.workout.power_tracking = false
-        // Set db.workout.power-target-set-actual := 0;
-        // Set db.workout.power-target-set-adjusted := 0;
-        // xf.dispatch('ui:power-target-set', db.workout.power-target-set-actual);
-        xf.dispatch('ui:power-target-set', 0);
+        // xf.dispatch('ui:power-target-set', 0);
+        // if there is no power target, send 0 and disable power match
+        db.workoutPowerMatchActive = false;
+        db.workoutPowerTargetSetActual = 0;
+        db.workoutPowerTargetSetAdjusted = db.workoutPowerTargetSetActual;
+        xf.dispatch('ui:power-target-set', workoutPowerTargetSetActual);
     }
 });
 xf.reg('workout:started', (x, db) => db.workoutStatus = 'started');
