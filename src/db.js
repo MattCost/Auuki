@@ -5,7 +5,7 @@ import { idb } from './storage/idb.js';
 import { ControlMode, } from './ble/enums.js';
 import { TimerStatus, } from './activity/enums.js';
 
-// import { trainerMock } from './simulation-scripts.js';
+import { trainerMock } from '../test/simulation-scripts.js';
 
 let db = {
     // Data Screen
@@ -458,7 +458,7 @@ xf.reg('app:start', async function(_, db) {
     // xf.dispatch(`ui:page-set`, 'workouts');
 
     // TRAINER MOCK
-    // trainerMock.init();
+    trainerMock.init();
 });
 
 function start () {

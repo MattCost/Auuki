@@ -1,4 +1,4 @@
-import { xf, equals, rand } from './functions.js';
+import { xf, equals, rand } from '../src/functions.js';
 
 class TrainerMock {
     constructor() {
@@ -6,8 +6,13 @@ class TrainerMock {
             powerTarget: 220,
             slope: 0,
             ftp: 256,
+            powerErrorAbsolute: 15,
+            powerErrorPercentage: 0.85,
+            powerErrorUseAbsolute: true
         };
         this.powerTarget = this.defaults.powerTarget;
+        this.powerErrorValue = this.defaults.powerErrorAbsolute;
+        this.powerErrorUseAbsolute = this.defaults.powerErrorUseAbsolute; 
         this.slope = this.defaults.slope;
         this.ftp = this.defaults.ftp;
 
@@ -79,7 +84,7 @@ class TrainerMock {
     }
     onPowerTarget(powerTarget) {
         this.powerTarget = powerTarget;
-        this.power = powerTarget > 0 ? powerTarget : this.defaults.powerTarget;
+        this.power = powerTarget > 0 ? (this.powerErrorUseAbsolute ? powerTarget - this.powerErrorValue : powerTarget * this.powerErrorValue ) : this.defaults.powerTarget;
         this.heartRate = this.powerToHeartRate(powerTarget, this.ftp, this.zones);
     }
     onSlopeTarget(slope) {
@@ -89,7 +94,7 @@ class TrainerMock {
         this.ftp = ftp;
     }
     powerNext(prev) {
-        return this.powerTarget;
+        return this.power;
     }
     cadenceNext(prev) {
         return prev + rand(-1, 1);
