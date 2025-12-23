@@ -408,14 +408,14 @@ xf.reg('watch:lapTime',        (time, db) => {
     var stepElapsed = db.stepDuration - time;
     // Could we launch a timer here to run this function every XX seconds instead of every time lapTime changes?
     if (db.powerMatchActive && stepElapsed >= 30 && (stepElapsed % iterationTime == 0)) {
-        var error = db.powerTarget - db.power30s;
-        console.log("db.powerTarget - db.power30s: %f", error)
+        var error = db.powerTarget - db.power10s;
+        console.log("db.powerTarget - db.power10s: %f", error)
         var integral = clamp(-2500, 2500,db.powerMatchPreviousIntegral + (error * iterationTime));
         var derivative = (error - db.powerMatchPreviousError) / iterationTime;
-        db.powerTargetAdjusted = Math.round( db.powerMatchKp * error + db.powerMatchKi * integral + db.powerMatchKd * derivative);
+        db.powerTargetAdjusted = db.powerTarget + Math.round( db.powerMatchKp * error + db.powerMatchKi * integral + db.powerMatchKd * derivative);
         db.powerMatchPreviousError = error;
         db.powerMatchPreviousIntegral = integral;
-        console.log("db.powerTarget %d db.power30s %d error %f integral %f derivative %f output %d", db.powerTarget, db.power30s, error, integral, derivative, db.powerTargetAdjusted);
+        console.log("db.powerTarget %d db.power10s %d error %f integral %f derivative %f output %d", db.powerTarget, db.power10s, error, integral, derivative, db.powerTargetAdjusted);
 
         // Setting db.powerTargetAdjusted should make the change propagate to the connected device subscriber/event.
         // powerTarget is left at it's unadulterated setpoint.

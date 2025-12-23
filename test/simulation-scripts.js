@@ -11,6 +11,7 @@ class TrainerMock {
             powerErrorUseAbsolute: true
         };
         this.powerTarget = this.defaults.powerTarget;
+        this.powerTargetAdjusted = this.defaults.powerTarget;
         this.powerErrorValue = this.defaults.powerErrorAbsolute;
         this.powerErrorUseAbsolute = this.defaults.powerErrorUseAbsolute; 
         this.slope = this.defaults.slope;
@@ -32,6 +33,7 @@ class TrainerMock {
         const self = this;
 
         xf.sub('db:powerTarget', self.onPowerTarget.bind(self));
+        xf.sub('db:powerTargetAdjusted', self.onPowerTargetAdjusted.bind(self));
         xf.sub('db:slopeTarget', self.onSlopeTarget.bind(self));
         xf.sub('db:ftp', self.onFTP.bind(self));
 
@@ -84,6 +86,12 @@ class TrainerMock {
     }
     onPowerTarget(powerTarget) {
         this.powerTarget = powerTarget;
+        // this.power = powerTarget > 0 ? (this.powerErrorUseAbsolute ? powerTarget - this.powerErrorValue : powerTarget * this.powerErrorValue ) : this.defaults.powerTarget;
+        // this.heartRate = this.powerToHeartRate(powerTarget, this.ftp, this.zones);
+    }
+    onPowerTargetAdjusted(powerTarget) {
+        console.log("Entering onPowerTargetAdjusted: %d", powerTarget);
+        this.powerTargetAdjusted = powerTarget;
         this.power = powerTarget > 0 ? (this.powerErrorUseAbsolute ? powerTarget - this.powerErrorValue : powerTarget * this.powerErrorValue ) : this.defaults.powerTarget;
         this.heartRate = this.powerToHeartRate(powerTarget, this.ftp, this.zones);
     }

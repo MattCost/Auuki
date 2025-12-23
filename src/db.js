@@ -29,7 +29,7 @@ let db = {
 
     power1s: models.power1s.default,
     power3s: models.power3s.default,
-    power30s: models.power30s.default,
+    power10s: models.power10s.default,
     powerInZone: models.powerInZone.default,
 
     powerLap: models.powerLap.default,
@@ -53,7 +53,7 @@ let db = {
     powerTarget: models.powerTarget.default,
     powerMatchActive: false,
     powerTargetAdjusted: models.powerTarget.default,
-    powerMatchKp: 1.1,
+    powerMatchKp: 0.1,
     powerMatchKi: 0.01,
     powerMatchKd: 0.0,
     powerMatchPreviousError: 0.0,
@@ -194,8 +194,8 @@ xf.reg('power3s', (power, db) => {
     db.power3s = power;
 });
 
-xf.reg('power30s', (power, db) => {
-    db.power30s = power;
+xf.reg('power10s', (power, db) => {
+    db.power10s = power;
 });
 
 xf.reg('powerInZone', (powerInZone, db) => {
