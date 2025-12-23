@@ -32,6 +32,7 @@ class Watch {
         this.hasBeenAutoPaused = false;
         this.autoPause         = true;
         this.autoStart         = true;
+        this.powerMatch        = false;
         this.init();
     }
     init() {
@@ -101,6 +102,7 @@ class Watch {
     onSources(value) {
         this.autoPause = value.autoPause ?? this.autoPause;
         this.autoStart = value.autoStart ?? this.autoStart;
+        this.powerMatch = value.powerMatch ?? this.powerMatch;
     }
     onPower1s(power) {
         if(this.autoPause) {
@@ -403,13 +405,13 @@ xf.reg('watch:lapDuration',    (time, db) => db.intervalDuration = time);
 xf.reg('watch:stepDuration',   (time, db) => db.stepDuration     = time);
 xf.reg('watch:lapTime',        (time, db) => db.lapTime          = time);
 xf.reg('watch:lapTime',        (time, db) => {
-    const iterationTime = 15;
-    if(db.stepDuration < 60) return; 
+    const iterationTime = 10;
+    if(db.stepDuration < 30) return; 
     var stepElapsed = db.stepDuration - time;
     // Could we launch a timer here to run this function every XX seconds instead of every time lapTime changes?
     if (db.powerMatchActive && stepElapsed >= 30 && (stepElapsed % iterationTime == 0)) {
         var error = db.powerTarget - db.power10s;
-        console.log("db.powerTarget - db.power10s: %f", error)
+        console.log("db.powerTarget - db.power10s = %f", error)
         var integral = clamp(-2500, 2500,db.powerMatchPreviousIntegral + (error * iterationTime));
         var derivative = (error - db.powerMatchPreviousError) / iterationTime;
         db.powerTargetAdjusted = db.powerTarget + Math.round( db.powerMatchKp * error + db.powerMatchKi * integral + db.powerMatchKd * derivative);
@@ -419,7 +421,6 @@ xf.reg('watch:lapTime',        (time, db) => {
 
         // Setting db.powerTargetAdjusted should make the change propagate to the connected device subscriber/event.
         // powerTarget is left at it's unadulterated setpoint.
-        
     }
 });
 xf.reg('watch:stepTime',       (time, db) => db.stepTime         = time);
@@ -447,13 +448,12 @@ xf.reg('watch:stepIndex',     (index, db) => {
         xf.dispatch('ui:cadence-target-set', 0);
     }
     if (exists(powerTarget)) {
-        // If we have a power target, and no slope target, ensure the trainer is in erg mode and enable power match
+        // If we have a power target, and no slope target, ensure the trainer is in erg mode and enable power match based on settings.
         if (!exists(slopeTarget)) {
             if (!equals(db.mode, ControlMode.erg)) {
                 xf.dispatch('ui:mode-set', ControlMode.erg);
             }
-            console.log("power and !slope, setting power match active to true");
-            db.powerMatchActive = true;
+            db.powerMatchActive = db.sources.powerMatch;
             
         } else {
             // Since we have both a power and slope target, disable power match

@@ -195,6 +195,7 @@ class Sources extends Model {
             virtualState: 'power',
             autoPause:    true,
             autoStart:    true,
+            powerMatch:   false,
             theme:        'DARK',
 
             // data tile settings
