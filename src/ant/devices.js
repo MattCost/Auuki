@@ -250,7 +250,7 @@ function Controllable() {
         device.start();
         console.log(':ant :controllable :start');
         xf.sub(`db:mode`, onMode.bind(self));
-        xf.sub('db:powerTarget', onPowerTarget.bind(self));
+        xf.sub('db:powerTargetTrainer', onPowerTarget.bind(self));
         xf.sub('db:resistanceTarget', onResistanceTarget.bind(self));
         xf.sub('db:slopeTarget', onSlopeTarget.bind(self));
     }
@@ -259,7 +259,7 @@ function Controllable() {
         const self = this;
         device.stop();
         xf.unsub(`db:mode`, onMode.bind(self));
-        xf.unsub('db:powerTarget', onPowerTarget.bind(self));
+        xf.unsub('db:powerTargetTrainer', onPowerTarget.bind(self));
         xf.unsub('db:resistanceTarget', onResistanceTarget.bind(self));
         xf.unsub('db:slopeTarget', onSlopeTarget.bind(self));
     }

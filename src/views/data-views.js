@@ -608,6 +608,16 @@ class PowerTarget extends DataView {
 
 customElements.define('power-target', PowerTarget);
 
+class PowerTargetTrainer extends DataView {
+    getDefaults() {
+        return {
+            prop: 'db:powerTargetTrainer',
+        };
+    }
+}
+
+customElements.define('power-target-trainer', PowerTargetTrainer);
+
 class PowerTargetFTP extends DataView {
     getDefaults() {
         return {
@@ -1676,6 +1686,16 @@ class AutoStart extends AutoPause {
 }
 
 customElements.define('auto-start', AutoStart);
+
+class PowerMatch extends AutoPause {
+    postInit() {
+        this.effect = 'sources';
+        this.key = 'powerMatch';
+        this.state = {powerMatch: false};
+        this.values = {on: {powerMatch: true}, off: {powerMatch: false}};
+    }
+}
+customElements.define('power-match', PowerMatch);
 
 class Theme extends DataView {
     postInit() {

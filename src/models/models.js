@@ -1596,6 +1596,7 @@ const dataTileSwitch = new DataTileSwitch({prop: 'dataTileSwitch', storage: Loca
 
 const power1s = new PropInterval({prop: 'db:power', effect: 'power1s', interval: 1000});
 const power3s = new PropInterval({prop: 'db:power', effect: 'power3s', interval: 3000});
+const power10s = new PropInterval({prop: 'db:power', effect: 'power10s', interval: 10000});
 const powerInZone = new PowerInZone({ftpModel: ftp});
 
 const activity = new Activity({prop: 'activity', api: api});
@@ -1618,6 +1619,7 @@ let models = {
 
     power1s,
     power3s,
+    power10s,
     powerLap,
     powerAvg,
     powerInZone,

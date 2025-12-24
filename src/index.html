@@ -94,6 +94,14 @@
                                                          prop="db:power3s">--</power-value>
                                         </div>
                                     </z-stack-item>
+                                    <z-stack-item>
+                                        <h2 class="data-tile--heading">Power 10s</h2>
+                                        <div class="data-tile--value-cont">
+                                            <power-value id=power-value-10s"
+                                                         class="data-tile--value"
+                                                         prop="db:power10s">--</power-value>
+                                        </div>
+                                    </z-stack-item>
                                 </z-stack>
                             </div>
 
@@ -175,6 +183,15 @@
                                             </power-ftp-value>
                                         </div>
                                     </z-stack-item>
+                                    <z-stack-item class="active">
+                                        <h2 class="data-tile--heading">Trainer Target</h2>
+                                        <div class="data-tile--value-cont">
+                                            <power-target-trainer
+                                                class="companion-main data-tile--value">
+                                                --
+                                            </power-target-trainer>
+                                        </div>
+                                    </z-stack-item>                                    
                                 </z-stack>
                             </div>
                             <div class="data-tile" id="data-tile--elapsed-time">
@@ -1446,6 +1463,15 @@
                                 <auto-pause class="option--value">
                                     OFF
                                 </auto-pause>
+                            </div>
+                        </div>
+
+                        <div class="list--row--outer">
+                            <div class="list--row--inner option">
+                                <div class="option--name">Power Match</div>
+                                <power-match class="option--value">
+                                    OFF
+                                </power-match>
                             </div>
                         </div>
 

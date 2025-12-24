@@ -5,7 +5,7 @@ import { idb } from './storage/idb.js';
 import { ControlMode, } from './ble/enums.js';
 import { TimerStatus, } from './activity/enums.js';
 
-// import { trainerMock } from './simulation-scripts.js';
+// import { trainerMock } from '../test/simulation-scripts.js';
 
 let db = {
     // Data Screen
@@ -29,6 +29,7 @@ let db = {
 
     power1s: models.power1s.default,
     power3s: models.power3s.default,
+    power10s: models.power10s.default,
     powerInZone: models.powerInZone.default,
 
     powerLap: models.powerLap.default,
@@ -50,6 +51,7 @@ let db = {
 
     // Targets
     powerTarget: models.powerTarget.default,
+    powerTargetTrainer: models.powerTarget.default,
     resistanceTarget: models.resistanceTarget.default,
     slopeTarget: models.slopeTarget.default,
     cadenceTarget: models.cadenceTarget.default,
@@ -184,6 +186,14 @@ xf.reg('power1s', (power, db) => {
 
 xf.reg('power3s', (power, db) => {
     db.power3s = power;
+});
+
+xf.reg('power10s', (power, db) => {
+    db.power10s = power;
+});
+
+xf.reg('powerTargetTrainer', (target, db) => {
+    db.powerTargetTrainer = target;
 });
 
 xf.reg('powerInZone', (powerInZone, db) => {
@@ -446,7 +456,10 @@ xf.reg('app:start', async function(_, db) {
     // xf.dispatch(`ui:page-set`, 'workouts');
 
     // TRAINER MOCK
-    // trainerMock.init();
+    if(trainerMock != undefined) {
+        console.log("Initializing Mock Trainer");
+        trainerMock.init();
+    }
 });
 
 function start () {

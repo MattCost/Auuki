@@ -1,4 +1,4 @@
-import { xf, equals, rand } from './functions.js';
+import { xf, equals, rand } from '../src/functions.js';
 
 class TrainerMock {
     constructor() {
