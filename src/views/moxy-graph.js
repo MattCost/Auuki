@@ -12,6 +12,7 @@ class MoxyGraph extends HTMLElement {
             thb: 'thb',
             heartRate: 'heartRate',
             power: 'power',
+            powerTarget: 'powerTarget'
         };
 
         // Moxy defined ranges and color codes:
@@ -27,8 +28,9 @@ class MoxyGraph extends HTMLElement {
         this.thb = {value: 0, x: 0, min: 8, max: 15};
         this.heartRate = {value: 0, x: 0, min: 30, max: 200};
         this.power = {value: 0, x: 0, min: 0, max: 600};
+        this.powerTarget = {value: 0, x: 0, min: 0, max: 600};
 
-        this.path = {smo2: [], thb: [], heartRate: [], power: []};
+        this.path = {smo2: [], thb: [], heartRate: [], power: [], powerTarget: []};
         this.$path = {};
         this.xAxis = {min: 0, max: 100};
         this.yAxis = {min: 0, max: 100};
@@ -43,6 +45,7 @@ class MoxyGraph extends HTMLElement {
             thb: 'db:thb',
             heartRate: 'db:heartRate',
             power: 'db:power1s',
+            powerTarget: 'db:powerTarget'
         };
         this.selectors = {
             svg: '#moxy-svg',
@@ -51,6 +54,7 @@ class MoxyGraph extends HTMLElement {
                 thb: '#moxy-path-thb',
                 heartRate: '#moxy-path-hr',
                 power: '#moxy-path-power',
+                powerTarget: '#moxy-path-power-target',
             },
         };
         this.color = {
@@ -58,6 +62,7 @@ class MoxyGraph extends HTMLElement {
             thb: '#FF663A',
             heartRate: '#FE340B',
             power: '#F8C73A',
+            powerTarget: '#3AE8F8'
         };
         this.stroke = {
             all: 1,
@@ -66,6 +71,7 @@ class MoxyGraph extends HTMLElement {
             smo2:      (value) => self.smo2.value = value,
             heartRate: (value) => self.heartRate.value = value,
             power:     (value) => self.power.value = value,
+            powerTarget:   (value) => self.powerTarget.value = value,
             thb:       (value) => {
                 self.adjustYMinMaxFor('thb', value);
                 self.thb.value = value;
