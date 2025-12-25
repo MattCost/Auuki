@@ -456,7 +456,7 @@ xf.reg('app:start', async function(_, db) {
     // xf.dispatch(`ui:page-set`, 'workouts');
 
     // TRAINER MOCK
-    if(trainerMock != undefined) {
+    if((typeof trainerMock != 'undefined')){
         console.log("Initializing Mock Trainer");
         trainerMock.init();
     }
